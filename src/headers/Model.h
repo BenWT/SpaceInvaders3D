@@ -9,12 +9,22 @@
 class Model {
 public:
     Model() {}
-    Model(GLchar* path) {
-        this->loadModel(path);
+    Model(GLchar* path, GLchar* texture) {
+        this->loadModel(path, texture);
     }
 
-    void Move() {
+    void Render(Shader shader, glm::mat4 &projectionMat, Vector3 &viewPos, bool doTexture) {
+        for(GLuint i = 0; i < this->meshes.size(); i++) {
+            this->meshes[i].Render(shader, projectionMat, viewPos, doTexture);
+        }
+    }
 
+    void Move(GLfloat x, GLfloat y, GLfloat z) {
+        for(GLuint i = 0; i < this->meshes.size(); i++) {
+            this->meshes[i].position.x += x;
+            this->meshes[i].position.y += y;
+            this->meshes[i].position.z += z;
+        }
     }
 
     void Rotate(GLfloat v) {
@@ -32,9 +42,11 @@ public:
         }
     }
 
-    void Render(Shader shader, glm::mat4 &projectionMat, glm::mat4 &viewMat) {
+    void Scale(GLfloat x, GLfloat y, GLfloat z) {
         for(GLuint i = 0; i < this->meshes.size(); i++) {
-            this->meshes[i].Render(shader, projectionMat, viewMat);
+            this->meshes[i].scale.x = x;
+            this->meshes[i].scale.y = y;
+            this->meshes[i].scale.z = z;
         }
     }
 
@@ -42,7 +54,7 @@ private:
     std::vector<Mesh> meshes;
     std::string directory;
 
-    void loadModel(std::string path) {
+    void loadModel(std::string path, const char* texturePath) {
         Assimp::Importer import;
         const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals | aiProcess_FixInfacingNormals | aiProcess_ConvertToLeftHanded);
 
@@ -50,24 +62,25 @@ private:
             std::cout << "ASSIMP Error: " << import.GetErrorString() << std::endl;
         } else {
             this->directory = path.substr(0, path.find_last_of('/'));
-            this->processNode(scene->mRootNode, scene);
+            this->processNode(scene->mRootNode, scene, texturePath);
         }
     }
 
-    void processNode(aiNode* node, const aiScene* scene) {
+    void processNode(aiNode* node, const aiScene* scene, const char* texturePath) {
         for (GLuint i = 0; i < node->mNumMeshes; i++) {
             aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-            this->meshes.push_back(this->processMesh(mesh, scene));
+            this->meshes.push_back(this->processMesh(mesh, scene, texturePath));
         }
 
         for (GLuint i = 0; i < node->mNumChildren; i++) {
-            this->processNode(node->mChildren[i], scene);
+            this->processNode(node->mChildren[i], scene, texturePath);
         }
     }
 
-    Mesh processMesh(aiMesh* mesh, const aiScene* scene) {
+    Mesh processMesh(aiMesh* mesh, const aiScene* scene, const char* texturePath) {
         std::vector<Vertex> vertices;
         std::vector<GLuint> indices;
+        GLuint texture;
 
         for (GLuint i = 0; i < mesh->mNumVertices; i++) {
             Vertex vert;
@@ -106,14 +119,23 @@ private:
             }
         }
 
-        return Mesh(vertices, indices);
+        texture = loadTexture(texturePath);
+
+        return Mesh(vertices, indices, texture);
     }
 
-    glm::vec3 newVec3(double x, double y, double z) {
-        glm::vec3 vector;
-        vector.x = x;
-        vector.y = y;
-        vector.z = z;
-        return vector;
+    GLuint loadTexture(const char* texturePath) {
+        SDL_Surface* image = IMG_Load(texturePath);
+        GLuint textureID;
+
+        glGenTextures(1, &textureID);
+        glBindTexture(GL_TEXTURE_2D, textureID);
+    	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->w, image->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, image->pixels);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image->w, image->h, 0, GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        SDL_FreeSurface(image);
+
+        return textureID;
     }
 };

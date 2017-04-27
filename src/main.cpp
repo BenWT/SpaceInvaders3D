@@ -32,10 +32,11 @@ using namespace chrono;
 SDL_Window* window;
 SDL_GLContext context;
 bool running = false;
+Vector3 viewPos;
 glm::mat4 projectionMat, viewMat, overlayMat;
 GLfloat viewportHeight, viewportWidth;
 
-Model test;
+Model test1, test2;
 
 // Support Functions
 high_resolution_clock::time_point NowTime() {
@@ -53,9 +54,9 @@ void SizeWindow() {
 	int w, h, desiredW;
 	w = SDL_GetWindowSurface(window)->w;
 	h = SDL_GetWindowSurface(window)->h;
-	desiredW = (h / 3.0f) * 4.0f;
 
-	glViewport((w - desiredW) / 2, 0.0f, desiredW, h);
+	glViewport(0.0f, 0.0f, w, h);
+	projectionMat = glm::perspective(glm::radians(45.0f), float(w) / float(h), 0.1f, 100.0f);
 }
 string basePath;
 string GetPathFromFullPath(const string& str) {
@@ -132,15 +133,24 @@ int main(int argc, char *argv[]) {
 	}
 
 	// Create shader program
-	Shader shader("assets/shaders/vert.vs", "assets/shaders/frag_spec.fs");
+	Shader shader("assets/shaders/vert.vs", "assets/shaders/frag.fs");
 
-    // Force 4:3 aspect using viewport
+    // Preserve Aspect
     SizeWindow();
+
+	overlayMat = glm::ortho(0.0f, 4.0f, 0.0f, 3.0f, -1.0f, 100.0f);
+	viewPos.x = 0.0f;
+	viewPos.y = 0.0f;
+	viewPos.z = -10.0f;
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
-	//projectionMat = glm::ortho(0.0f, 4.0f, 0.0f, 3.0f, -1.0f, 100.0f);
-	projectionMat = glm::perspective(45.0f, 4.0f / 3.0f, 0.1f, 100.0f);
-	viewMat = glm::translate(viewMat, glm::vec3(0.0f, 0.0f, -10.0f));
-	overlayMat = viewMat;
 
 	LoadAssets();
 	GenerateGame(true);
@@ -192,20 +202,30 @@ void ProcessInput() {
 }
 
 void Update(double deltaTime) {
-	test.Rotate(5.0f * deltaTime);
+
 }
 
 void Render(Shader shader, glm::mat4 &projectionMat, glm::mat4 &viewMat) {
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	test.Render(shader, projectionMat, viewMat);
+
+	test1.Render(shader, projectionMat, viewPos, true);
+	test2.Render(shader, projectionMat, viewPos, true);
 
 	SDL_GL_SwapWindow(window);
 }
 
 void LoadAssets() {
-	test = Model("assets/models/testobj.obj");
+	test1 = Model("assets/models/player.FBX", "assets/textures/rick.png");
+	test1.Move(0.0f, -5.0f, -5.0f);
+	test1.Rotate(0.0f, 0.0f, 0.0f);
+	test1.Scale(0.1f, 0.1f, 0.1f);
+
+	test2 = Model("assets/models/player.FBX", "assets/textures/ainsley.png");
+	test2.Move(0.0f, 5.0f, -5.0f);
+	test2.Rotate(0.0f, 0.0f, 0.0f);
+	test2.Scale(0.1f, 0.1f, 0.1f);
 }
 
 void GenerateGame(bool firstGenerate) {}
