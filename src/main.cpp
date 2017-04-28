@@ -23,6 +23,7 @@
 #include "headers/Shader.h"
 #include "headers/Mesh.h"
 #include "headers/Model.h"
+#include "headers/Cubemap.h"
 
 // Namespaces
 using namespace std;
@@ -32,11 +33,13 @@ using namespace chrono;
 SDL_Window* window;
 SDL_GLContext context;
 bool running = false;
-Vector3 viewPos;
+Vector3 viewPos, viewRot;
 glm::mat4 projectionMat, viewMat, overlayMat;
 GLfloat viewportHeight, viewportWidth;
 
+Cubemap skybox;
 Model test1, test2;
+Shader mainShader, skyboxShader;
 
 // Support Functions
 high_resolution_clock::time_point NowTime() {
@@ -51,7 +54,7 @@ void toggleFullScreen() {
 	SDL_SetWindowFullscreen(window, toggle ? 0 : FullscreenFlag);
 }
 void SizeWindow() {
-	int w, h, desiredW;
+	int w, h;
 	w = SDL_GetWindowSurface(window)->w;
 	h = SDL_GetWindowSurface(window)->h;
 
@@ -75,7 +78,7 @@ string AddBase(string path) {
 // Main Functions
 void ProcessInput();
 void Update(double deltaTime);
-void Render(Shader shader, glm::mat4 &projectionMat, glm::mat4 &viewMat);
+void Render(glm::mat4 &projectionMat, glm::mat4 &viewMat);
 void LoadAssets();
 void GenerateGame(bool firstGenerate);
 
@@ -133,7 +136,8 @@ int main(int argc, char *argv[]) {
 	}
 
 	// Create shader program
-	Shader shader("assets/shaders/vert.vs", "assets/shaders/frag.fs");
+	mainShader = Shader("assets/shaders/vert.vs", "assets/shaders/frag.fs");
+	skyboxShader = Shader("assets/shaders/vert_cube.vs", "assets/shaders/frag_cube.fs");
 
     // Preserve Aspect
     SizeWindow();
@@ -149,8 +153,11 @@ int main(int argc, char *argv[]) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glFrontFace(GL_CCW);
 
 	LoadAssets();
 	GenerateGame(true);
@@ -166,7 +173,7 @@ int main(int argc, char *argv[]) {
 
 		ProcessInput();
 		Update(deltaTime);
-		Render(shader, projectionMat, viewMat);
+		Render(projectionMat, viewMat);
 	}
 
 	// Cleanup on Close
@@ -202,21 +209,25 @@ void ProcessInput() {
 }
 
 void Update(double deltaTime) {
-
+	//viewPos.x += deltaTime;
+	viewRot.y += 10.0f * deltaTime;
 }
 
-void Render(Shader shader, glm::mat4 &projectionMat, glm::mat4 &viewMat) {
+void Render(glm::mat4 &projectionMat, glm::mat4 &viewMat) {
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	skybox.Render(skyboxShader, projectionMat, viewPos, viewRot);
 
-	test1.Render(shader, projectionMat, viewPos, true);
-	test2.Render(shader, projectionMat, viewPos, true);
+	test1.Render(mainShader, projectionMat, viewPos, viewRot);
+	test2.Render(mainShader, projectionMat, viewPos, viewRot);
 
 	SDL_GL_SwapWindow(window);
 }
 
 void LoadAssets() {
+	skybox = Cubemap(true);
+
 	test1 = Model("assets/models/player.FBX", "assets/textures/rick.png");
 	test1.Move(0.0f, -5.0f, -5.0f);
 	test1.Rotate(0.0f, 0.0f, 0.0f);

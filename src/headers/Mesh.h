@@ -62,7 +62,7 @@ public:
         glBindVertexArray(0);
     }
 
-	void Render(Shader shader, glm::mat4 &projection, Vector3 &viewPos, bool doTexture) {
+	void Render(Shader shader, glm::mat4 &projection, Vector3 &viewPos, Vector3 &viewRot) {
         if (shouldBuffer) BindBuffers();
 
 		// Setup shader program
@@ -70,6 +70,10 @@ public:
 
 		// Perform Transformations
 		view = glm::translate(glm::mat4(), glm::vec3(viewPos.x, viewPos.y, viewPos.z));
+        view = glm::rotate(view, glm::radians(viewRot.x), glm::vec3(1.0f, 0.0f, 0.0f));
+		view = glm::rotate(view, glm::radians(viewRot.y), glm::vec3(0.0f, 1.0f, 0.0f));
+		view = glm::rotate(view, glm::radians(viewRot.z), glm::vec3(0.0f, 0.0f, 1.0f));
+
 		model = glm::mat4();
 		model = glm::translate(model, glm::vec3(position.x, position.y, position.z));
         model = glm::rotate(model, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -89,10 +93,10 @@ public:
 		glUniformMatrix4fv(glGetUniformLocation(shader.program, "view"), 1, GL_FALSE, glm::value_ptr(view));
 
 		// Do Render
-		if (doTexture) glBindTexture(GL_TEXTURE_2D, texture);
+		glBindTexture(GL_TEXTURE_2D, texture);
         glBindVertexArray(this->vertArray);
-        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
-		if (doTexture)  glBindTexture(GL_TEXTURE_2D, 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
     }
 };

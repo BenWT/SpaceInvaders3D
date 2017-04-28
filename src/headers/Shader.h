@@ -10,6 +10,7 @@ class Shader
 public:
     GLuint program;
 
+    Shader() {}
     Shader(std::string vertPath, std::string fragPath) {
         std::string vertSource, fragSource;
         std::ifstream vertFile, fragFile;

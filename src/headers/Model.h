@@ -13,9 +13,9 @@ public:
         this->loadModel(path, texture);
     }
 
-    void Render(Shader shader, glm::mat4 &projectionMat, Vector3 &viewPos, bool doTexture) {
+    void Render(Shader shader, glm::mat4 &projectionMat, Vector3 &viewPos, Vector3 &viewRot) {
         for(GLuint i = 0; i < this->meshes.size(); i++) {
-            this->meshes[i].Render(shader, projectionMat, viewPos, doTexture);
+            this->meshes[i].Render(shader, projectionMat, viewPos, viewRot);
         }
     }
 
@@ -125,12 +125,12 @@ private:
     }
 
     GLuint loadTexture(const char* texturePath) {
-        SDL_Surface* image = IMG_Load(texturePath);
         GLuint textureID;
+        SDL_Surface* image = IMG_Load(texturePath);
 
         glGenTextures(1, &textureID);
+
         glBindTexture(GL_TEXTURE_2D, textureID);
-    	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->w, image->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, image->pixels);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image->w, image->h, 0, GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
         glGenerateMipmap(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, 0);

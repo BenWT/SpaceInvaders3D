@@ -11,6 +11,7 @@ add_executable(${PROJECT_NAME}
 	src/headers/Shader.h
 	src/headers/Mesh.h
 	src/headers/Model.h
+	src/headers/Cubemap.h
 )
 
 target_link_libraries(${PROJECT_NAME} ${CONAN_LIBS})
