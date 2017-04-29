@@ -11,6 +11,7 @@ add_executable(${PROJECT_NAME}
 	src/headers/Shader.h
 	src/headers/Mesh.h
 	src/headers/Model.h
+	src/headers/Camera.h
 	src/headers/Cubemap.h
 )
 

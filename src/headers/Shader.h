@@ -1,9 +1,4 @@
 #pragma once
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
-#include <GL/glew.h>
 
 class Shader
 {
@@ -50,7 +45,7 @@ public:
         glGetShaderiv(vert, GL_COMPILE_STATUS, &success);
         if (!success) {
             glGetShaderInfoLog(vert, 512, NULL, infoLog);
-            std::cout << "ERROR::SHADER::vert::COMPILATION_FAILED\n" << infoLog << std::endl;
+            std::cout << "Vertex Shader failed to compile.\n" << infoLog << std::endl;
         }
 
         // Frag Shader
@@ -60,7 +55,7 @@ public:
         glGetShaderiv(frag, GL_COMPILE_STATUS, &success);
         if (!success) {
             glGetShaderInfoLog(frag, 512, NULL, infoLog);
-            std::cout << "ERROR::SHADER::frag::COMPILATION_FAILED\n" << infoLog << std::endl;
+            std::cout << "Fragment Shader failed to compile.\n" << infoLog << std::endl;
         }
 
         // Shader Program
@@ -71,7 +66,7 @@ public:
         glGetProgramiv(this->program, GL_LINK_STATUS, &success);
         if (!success) {
             glGetProgramInfoLog(this->program, 512, NULL, infoLog);
-            std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+            std::cout << "Shaders failed to link.\n" << infoLog << std::endl;
         }
 
         glDeleteShader(vert);

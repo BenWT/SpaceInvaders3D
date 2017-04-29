@@ -1,58 +1,49 @@
 #pragma once
-#include <iostream>
-#include <string>
-#include <vector>
-#include <iterator>
 #include "Vertex.h"
 #include "Mesh.h"
 
 class Model {
 public:
+    std::vector<Mesh> meshes;
+
     Model() {}
     Model(GLchar* path, GLchar* texture) {
         this->loadModel(path, texture);
     }
 
-    void Render(Shader shader, glm::mat4 &projectionMat, Vector3 &viewPos, Vector3 &viewRot) {
+    void Render(Shader &shader, Camera &camera, glm::mat4 &projectionMat) {
         for(GLuint i = 0; i < this->meshes.size(); i++) {
-            this->meshes[i].Render(shader, projectionMat, viewPos, viewRot);
+            this->meshes[i].Render(shader, camera, projectionMat);
         }
     }
 
     void Move(GLfloat x, GLfloat y, GLfloat z) {
         for(GLuint i = 0; i < this->meshes.size(); i++) {
-            this->meshes[i].position.x += x;
-            this->meshes[i].position.y += y;
-            this->meshes[i].position.z += z;
+            this->meshes[i].position.Increment(x, y, z);
         }
     }
 
     void Rotate(GLfloat v) {
         for(GLuint i = 0; i < this->meshes.size(); i++) {
-            this->meshes[i].rotation.x += v;
-            this->meshes[i].rotation.y += v;
-            this->meshes[i].rotation.z += v;
+            this->meshes[i].rotation.Increment(v);
         }
     }
     void Rotate(GLfloat x, GLfloat y, GLfloat z) {
         for(GLuint i = 0; i < this->meshes.size(); i++) {
-            this->meshes[i].rotation.x += x;
-            this->meshes[i].rotation.y += y;
-            this->meshes[i].rotation.z += z;
+            this->meshes[i].rotation.Increment(x, y, z);
         }
     }
 
+    void Scale(GLfloat v) {
+        for(GLuint i = 0; i < this->meshes.size(); i++) {
+            this->meshes[i].scale.Set(v);
+        }
+    }
     void Scale(GLfloat x, GLfloat y, GLfloat z) {
         for(GLuint i = 0; i < this->meshes.size(); i++) {
-            this->meshes[i].scale.x = x;
-            this->meshes[i].scale.y = y;
-            this->meshes[i].scale.z = z;
+            this->meshes[i].scale.Set(x, y, z);
         }
     }
-
-private:
-    std::vector<Mesh> meshes;
-    std::string directory;
 
     void loadModel(std::string path, const char* texturePath) {
         Assimp::Importer import;
@@ -65,6 +56,9 @@ private:
             this->processNode(scene->mRootNode, scene, texturePath);
         }
     }
+
+private:
+    std::string directory;
 
     void processNode(aiNode* node, const aiScene* scene, const char* texturePath) {
         for (GLuint i = 0; i < node->mNumMeshes; i++) {

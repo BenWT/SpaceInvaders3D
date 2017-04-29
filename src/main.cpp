@@ -3,12 +3,15 @@
 #define GLM_FORCE_RADIANS
 
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <vector>
 #include <iterator>
 #include <chrono>
 #include <random>
 #include <cmath>
 #include <string>
+#include <functional>
 
 #include "SDL.h"
 #include "SDL_image.h"
@@ -23,7 +26,10 @@
 #include "headers/Shader.h"
 #include "headers/Mesh.h"
 #include "headers/Model.h"
+#include "headers/Camera.h"
 #include "headers/Cubemap.h"
+#include "headers/Invader.h"
+#include "headers/GameState.h"
 
 // Namespaces
 using namespace std;
@@ -33,13 +39,11 @@ using namespace chrono;
 SDL_Window* window;
 SDL_GLContext context;
 bool running = false;
-Vector3 viewPos, viewRot;
-glm::mat4 projectionMat, viewMat, overlayMat;
+glm::mat4 projectionMat, overlayMat;
 GLfloat viewportHeight, viewportWidth;
-
-Cubemap skybox;
-Model test1, test2;
 Shader mainShader, skyboxShader;
+
+GameState game = GameState();
 
 // Support Functions
 high_resolution_clock::time_point NowTime() {
@@ -78,7 +82,7 @@ string AddBase(string path) {
 // Main Functions
 void ProcessInput();
 void Update(double deltaTime);
-void Render(glm::mat4 &projectionMat, glm::mat4 &viewMat);
+void Render();
 void LoadAssets();
 void GenerateGame(bool firstGenerate);
 
@@ -141,11 +145,7 @@ int main(int argc, char *argv[]) {
 
     // Preserve Aspect
     SizeWindow();
-
 	overlayMat = glm::ortho(0.0f, 4.0f, 0.0f, 3.0f, -1.0f, 100.0f);
-	viewPos.x = 0.0f;
-	viewPos.y = 0.0f;
-	viewPos.z = -10.0f;
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -173,7 +173,7 @@ int main(int argc, char *argv[]) {
 
 		ProcessInput();
 		Update(deltaTime);
-		Render(projectionMat, viewMat);
+		Render();
 	}
 
 	// Cleanup on Close
@@ -209,34 +209,46 @@ void ProcessInput() {
 }
 
 void Update(double deltaTime) {
-	//viewPos.x += deltaTime;
-	viewRot.y += 10.0f * deltaTime;
+	game.Update(deltaTime);
 }
 
-void Render(glm::mat4 &projectionMat, glm::mat4 &viewMat) {
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+void Render() {
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	skybox.Render(skyboxShader, projectionMat, viewPos, viewRot);
-
-	test1.Render(mainShader, projectionMat, viewPos, viewRot);
-	test2.Render(mainShader, projectionMat, viewPos, viewRot);
+	game.Render(mainShader, skyboxShader, projectionMat);
 
 	SDL_GL_SwapWindow(window);
 }
 
+void CALLBACK_MoveDown() {
+	for (int i = 0; i < game.invaders.size(); i++) {
+		game.invaders[i].Move(0.0f, -0.25f, 0.0f);
+		game.invaders[i].moveRight = !game.invaders[i].moveRight;
+	}
+}
+
 void LoadAssets() {
-	skybox = Cubemap(true);
+	int rows = 5, columns = 10;
+	float startX = -4.5f, startY = 3.5f, diffX = 0.6f, diffY = -0.6f;
 
-	test1 = Model("assets/models/player.FBX", "assets/textures/rick.png");
-	test1.Move(0.0f, -5.0f, -5.0f);
-	test1.Rotate(0.0f, 0.0f, 0.0f);
-	test1.Scale(0.1f, 0.1f, 0.1f);
+	game.skybox = Cubemap(true);
 
-	test2 = Model("assets/models/player.FBX", "assets/textures/ainsley.png");
-	test2.Move(0.0f, 5.0f, -5.0f);
-	test2.Rotate(0.0f, 0.0f, 0.0f);
-	test2.Scale(0.1f, 0.1f, 0.1f);
+	game.player = Model("assets/models/player_ship.FBX", "assets/textures/rick.png");
+	game.player.Move(0.0f, -3.0f, 0.0f);
+	game.player.Rotate(0.0f, 180.0f, 0.0f);
+	game.player.Scale(0.02f);
+
+	for (int i = 0; i < columns; i++) {
+		for (int j = 0; j < rows; j++) {
+			Invader* inv = new Invader("assets/models/cube.FBX", "assets/textures/ainsley.png", startX, CALLBACK_MoveDown);
+			inv->Move(startX + i * diffX, startY + j * diffY, 0.0f);
+			inv->Rotate(0.0f);
+			inv->Scale(0.05f);
+			game.invaders.push_back(*inv);
+			delete inv;
+		}
+	}
 }
 
 void GenerateGame(bool firstGenerate) {}

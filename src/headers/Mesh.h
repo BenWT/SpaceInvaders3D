@@ -1,13 +1,11 @@
 #pragma once
-#include <iostream>
-#include <vector>
-#include <iterator>
+#include "Camera.h"
 #include "Vertex.h"
 #include "Vector.h"
 
 class Mesh {
 private:
-	glm::mat4 _trans, _rot, _scale, model, view;
+	glm::mat4 _trans, _rot, _scale, model;
     GLuint vertBuffer, vertArray, elemBuffer;
     bool shouldBuffer = true;
 public:
@@ -21,17 +19,7 @@ public:
 
     Mesh() {}
     Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, GLuint texture) {
-        position.x = 0.0f;
-        position.y = 0.0f;
-        position.z = 0.0f;
-
-        rotation.x = 0.0f;
-        rotation.y = 0.0f;
-        rotation.z = 0.0f;
-
-        scale.x = 1.0f;
-        scale.y = 1.0f;
-        scale.z = 1.0f;
+		scale.Set(1.0f);
 
         this->vertices = vertices;
         this->indices = indices;
@@ -62,17 +50,11 @@ public:
         glBindVertexArray(0);
     }
 
-	void Render(Shader shader, glm::mat4 &projection, Vector3 &viewPos, Vector3 &viewRot) {
+	void Render(Shader &shader, Camera &camera, glm::mat4 &projectionMat) {
         if (shouldBuffer) BindBuffers();
 
 		// Setup shader program
 		shader.Use();
-
-		// Perform Transformations
-		view = glm::translate(glm::mat4(), glm::vec3(viewPos.x, viewPos.y, viewPos.z));
-        view = glm::rotate(view, glm::radians(viewRot.x), glm::vec3(1.0f, 0.0f, 0.0f));
-		view = glm::rotate(view, glm::radians(viewRot.y), glm::vec3(0.0f, 1.0f, 0.0f));
-		view = glm::rotate(view, glm::radians(viewRot.z), glm::vec3(0.0f, 0.0f, 1.0f));
 
 		model = glm::mat4();
 		model = glm::translate(model, glm::vec3(position.x, position.y, position.z));
@@ -82,15 +64,15 @@ public:
 		model = glm::scale(model, glm::vec3(scale.x, scale.y, scale.z));
 
 		// Set Properties
-		glUniform3f(glGetUniformLocation(shader.program, "viewPos"), viewPos.x, viewPos.y, viewPos.z);
-		glUniform3f(glGetUniformLocation(shader.program, "dirLight.direction"), -0.2f, -1.0f, -0.3f);
+		glUniform3f(glGetUniformLocation(shader.program, "viewPos"), camera.position.x, camera.position.y, camera.position.z);
+		glUniform3f(glGetUniformLocation(shader.program, "dirLight.direction"), 1.0f, -1.0f, -1.0f); // 1 -1
 		glUniform3f(glGetUniformLocation(shader.program, "dirLight.ambient"), 0.2f, 0.2f, 0.2f);
 		glUniform3f(glGetUniformLocation(shader.program, "dirLight.diffuse"), 0.5f, 0.5f, 0.5f);
 		glUniform3f(glGetUniformLocation(shader.program, "dirLight.specular"), 1.0f, 1.0f, 1.0f);
 
-		glUniformMatrix4fv(glGetUniformLocation(shader.program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+		glUniformMatrix4fv(glGetUniformLocation(shader.program, "projection"), 1, GL_FALSE, glm::value_ptr(projectionMat));
 		glUniformMatrix4fv(glGetUniformLocation(shader.program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-		glUniformMatrix4fv(glGetUniformLocation(shader.program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(glGetUniformLocation(shader.program, "view"), 1, GL_FALSE, glm::value_ptr(camera.GetViewMatrix()));
 
 		// Do Render
 		glBindTexture(GL_TEXTURE_2D, texture);
