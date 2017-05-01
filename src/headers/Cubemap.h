@@ -94,12 +94,12 @@ public:
 
     GLuint createCubemap() {
         std::vector<const GLchar*> names {
-            "assets/textures/cubemap/right.jpg",
-            "assets/textures/cubemap/left.jpg",
-            "assets/textures/cubemap/top.jpg",
-            "assets/textures/cubemap/bottom.jpg",
-            "assets/textures/cubemap/back.jpg",
-            "assets/textures/cubemap/front.jpg"
+            "assets/textures/lightblue/right.png",
+            "assets/textures/lightblue/left.png",
+            "assets/textures/lightblue/top.png",
+            "assets/textures/lightblue/bot.png",
+            "assets/textures/lightblue/front.png",
+            "assets/textures/lightblue/back.png"
         };
 
         GLuint textureID;

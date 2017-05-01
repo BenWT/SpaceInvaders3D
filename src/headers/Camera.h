@@ -18,12 +18,10 @@ public:
         this->updateCameraVectors();
     }
 
-    glm::mat4 GetViewMatrix()
-    {
+    glm::mat4 GetViewMatrix() {
         return glm::lookAt(this->position, this->position + this->front, this->up);
     }
 
-private:
     void updateCameraVectors() {
         glm::vec3 f;
         f.x = cos(glm::radians(this->yaw)) * cos(glm::radians(this->pitch));

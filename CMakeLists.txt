@@ -8,11 +8,19 @@ conan_basic_setup()
 
 add_executable(${PROJECT_NAME}
 	src/main.cpp
-	src/headers/Shader.h
-	src/headers/Mesh.h
-	src/headers/Model.h
+	src/headers/Barricade.h
+	src/headers/Bullet.h
 	src/headers/Camera.h
 	src/headers/Cubemap.h
+	src/headers/GameState.h
+	src/headers/Invader.h
+	src/headers/Mesh.h
+	src/headers/Model.h
+	src/headers/Plane.h
+	src/headers/Player.h
+	src/headers/Shader.h
+	src/headers/Vector.h
+	src/headers/Vertex.h
 )
 
 target_link_libraries(${PROJECT_NAME} ${CONAN_LIBS})

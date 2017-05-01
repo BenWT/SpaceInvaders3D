@@ -16,33 +16,29 @@ public:
             this->meshes[i].Render(shader, camera, projectionMat);
         }
     }
+    void Render(Shader &shader, Camera &camera, glm::mat4 &projectionMat, int i) {
+        this->meshes[i].Render(shader, camera, projectionMat);
+    }
 
     void Move(GLfloat x, GLfloat y, GLfloat z) {
-        for(GLuint i = 0; i < this->meshes.size(); i++) {
-            this->meshes[i].position.Increment(x, y, z);
-        }
+        for(GLuint i = 0; i < this->meshes.size(); i++) this->meshes[i].position.Increment(x, y, z);
     }
 
     void Rotate(GLfloat v) {
-        for(GLuint i = 0; i < this->meshes.size(); i++) {
-            this->meshes[i].rotation.Increment(v);
-        }
+        for(GLuint i = 0; i < this->meshes.size(); i++) this->meshes[i].rotation.Increment(v);
     }
     void Rotate(GLfloat x, GLfloat y, GLfloat z) {
-        for(GLuint i = 0; i < this->meshes.size(); i++) {
-            this->meshes[i].rotation.Increment(x, y, z);
-        }
+        for(GLuint i = 0; i < this->meshes.size(); i++) this->meshes[i].rotation.Increment(x, y, z);
     }
 
     void Scale(GLfloat v) {
-        for(GLuint i = 0; i < this->meshes.size(); i++) {
-            this->meshes[i].scale.Set(v);
-        }
+        for(GLuint i = 0; i < this->meshes.size(); i++) this->meshes[i].scale.Set(v);
     }
     void Scale(GLfloat x, GLfloat y, GLfloat z) {
-        for(GLuint i = 0; i < this->meshes.size(); i++) {
-            this->meshes[i].scale.Set(x, y, z);
-        }
+        for(GLuint i = 0; i < this->meshes.size(); i++) this->meshes[i].scale.Set(x, y, z);
+    }
+    void Grow(GLfloat v) {
+        for(GLuint i = 0; i < this->meshes.size(); i++) this->meshes[i].scale.Increment(v);
     }
 
     void loadModel(std::string path, const char* texturePath) {
@@ -56,6 +52,11 @@ public:
             this->processNode(scene->mRootNode, scene, texturePath);
         }
     }
+
+    Vector3 getPosition() { return this->meshes[0].position; }
+    GLfloat getX() { return this->meshes[0].position.x; }
+    GLfloat getY() { return this->meshes[0].position.y; }
+    GLfloat getZ() { return this->meshes[0].position.z; }
 
 private:
     std::string directory;

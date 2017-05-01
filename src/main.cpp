@@ -23,12 +23,18 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+#include "headers/Vector.h"
+#include "headers/Vertex.h"
 #include "headers/Shader.h"
 #include "headers/Mesh.h"
 #include "headers/Model.h"
 #include "headers/Camera.h"
+#include "headers/Bullet.h"
 #include "headers/Cubemap.h"
 #include "headers/Invader.h"
+#include "headers/Plane.h"
+#include "headers/Player.h"
+#include "headers/Barricade.h"
 #include "headers/GameState.h"
 
 // Namespaces
@@ -39,9 +45,9 @@ using namespace chrono;
 SDL_Window* window;
 SDL_GLContext context;
 bool running = false;
-glm::mat4 projectionMat, overlayMat;
+glm::mat4 projectionMat, overlayMat, overlayView;
 GLfloat viewportHeight, viewportWidth;
-Shader mainShader, skyboxShader;
+Shader mainShader, skyboxShader, hudShader;
 
 GameState game = GameState();
 
@@ -49,21 +55,25 @@ GameState game = GameState();
 high_resolution_clock::time_point NowTime() {
 	return chrono::high_resolution_clock::now();
 }
-double TimeSinceLastFrame(high_resolution_clock::time_point frameTime) {
-	return (duration_cast<microseconds>(NowTime() - frameTime).count()) / 1000000.0;
+GLfloat TimeSinceLastFrame(high_resolution_clock::time_point frameTime) {
+	return (GLfloat)(duration_cast<microseconds>(NowTime() - frameTime).count()) / 1000000.0f;
 }
 void toggleFullScreen() {
 	Uint32 FullscreenFlag = SDL_WINDOW_FULLSCREEN_DESKTOP;
-	bool toggle = SDL_GetWindowFlags(window) & FullscreenFlag;
+	Uint32 toggle = SDL_GetWindowFlags(window) & FullscreenFlag;
 	SDL_SetWindowFullscreen(window, toggle ? 0 : FullscreenFlag);
 }
 void SizeWindow() {
 	int w, h;
+	float wNormal, hNormal;
 	w = SDL_GetWindowSurface(window)->w;
 	h = SDL_GetWindowSurface(window)->h;
 
-	glViewport(0.0f, 0.0f, w, h);
+	glViewport(0, 0, w, h);
 	projectionMat = glm::perspective(glm::radians(45.0f), float(w) / float(h), 0.1f, 100.0f);
+
+	overlayMat = glm::ortho(0.0f, float(w) / float(h), 0.0f, 1.0f, -1.0f, 100.0f);
+	overlayView = glm::translate(glm::mat4(), glm::vec3((float(w) / float(h)) / 2, 0.5f, 0.0f));
 }
 string basePath;
 string GetPathFromFullPath(const string& str) {
@@ -81,10 +91,10 @@ string AddBase(string path) {
 
 // Main Functions
 void ProcessInput();
-void Update(double deltaTime);
+void Update(GLfloat &deltaTime);
 void Render();
 void LoadAssets();
-void GenerateGame(bool firstGenerate);
+void GenerateGame(bool playerDied);
 
 int main(int argc, char *argv[]) {
 	// Get Base Path
@@ -142,10 +152,10 @@ int main(int argc, char *argv[]) {
 	// Create shader program
 	mainShader = Shader("assets/shaders/vert.vs", "assets/shaders/frag.fs");
 	skyboxShader = Shader("assets/shaders/vert_cube.vs", "assets/shaders/frag_cube.fs");
+	hudShader = Shader("assets/shaders/vert_hud.vs", "assets/shaders/frag_cube.fs");
 
     // Preserve Aspect
     SizeWindow();
-	overlayMat = glm::ortho(0.0f, 4.0f, 0.0f, 3.0f, -1.0f, 100.0f);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -165,7 +175,7 @@ int main(int argc, char *argv[]) {
     // Game Loop
 	running = true;
 	high_resolution_clock::time_point frameTime = NowTime();
-	double deltaTime = 0;
+	GLfloat deltaTime = 0;
 
 	while (running) {
 		deltaTime =  TimeSinceLastFrame(frameTime);
@@ -193,11 +203,23 @@ void ProcessInput() {
 					SizeWindow();
 				}
 			break;
-			case SDL_MOUSEBUTTONDOWN: break;
-			case SDL_KEYUP: break;
+			case SDL_MOUSEBUTTONDOWN:
+				if (event.button.button == SDL_BUTTON_LEFT) game.PlayerShoot();
+				// if (event.button.button == SDL_BUTTON_RIGHT) gameState.EnemyFire(0);
+			break;
+			case SDL_KEYUP:
+				if (k == SDLK_w) game.input.up = false;
+				if (k == SDLK_s) game.input.down = false;
+				if (k == SDLK_a) game.input.left = false;
+				if (k == SDLK_d) game.input.right = false;
+			break;
 			case SDL_KEYDOWN:
 				if (k == SDLK_ESCAPE) running = false;
 				if (k == SDLK_RETURN) toggleFullScreen();
+				if (k == SDLK_w) game.input.up = true;
+				if (k == SDLK_s) game.input.down = true;
+				if (k == SDLK_a) game.input.left = true;
+				if (k == SDLK_d) game.input.right = true;
 			break;
 
 			case SDL_QUIT:
@@ -208,7 +230,14 @@ void ProcessInput() {
 	}
 }
 
-void Update(double deltaTime) {
+void Update(GLfloat &deltaTime) {
+	if (game.player.lives <= 0) {
+		GenerateGame(true);
+	}
+	if (game.invaders.size() <= 0) {
+		GenerateGame(false);
+	}
+
 	game.Update(deltaTime);
 }
 
@@ -217,38 +246,80 @@ void Render() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	game.Render(mainShader, skyboxShader, projectionMat);
+	game.RenderHUD(mainShader, overlayMat * overlayView);
 
 	SDL_GL_SwapWindow(window);
 }
 
-void CALLBACK_MoveDown() {
-	for (int i = 0; i < game.invaders.size(); i++) {
-		game.invaders[i].Move(0.0f, -0.25f, 0.0f);
-		game.invaders[i].moveRight = !game.invaders[i].moveRight;
-	}
-}
-
 void LoadAssets() {
-	int rows = 5, columns = 10;
-	float startX = -4.5f, startY = 3.5f, diffX = 0.6f, diffY = -0.6f;
-
 	game.skybox = Cubemap(true);
 
-	game.player = Model("assets/models/player_ship.FBX", "assets/textures/rick.png");
-	game.player.Move(0.0f, -3.0f, 0.0f);
-	game.player.Rotate(0.0f, 180.0f, 0.0f);
+	game.lBarricade = Model("assets/models/cube.FBX", "assets/textures/rick.png");
+	game.lBarricade.Move(-5.5f, 0.0f, 0.0f);
+	game.lBarricade.Scale(0.05f, 0.8f, 0.05f);
+	game.rBarricade = Model("assets/models/cube.FBX", "assets/textures/rick.png");
+	game.rBarricade.Move(5.5f, 0.0f, 0.0f);
+	game.rBarricade.Scale(0.05f, 0.8f, 0.05f);
+
+	game.player = Player("assets/models/player_ship.obj", "assets/textures/player_ship.png", -4.5f);
 	game.player.Scale(0.02f);
 
-	for (int i = 0; i < columns; i++) {
-		for (int j = 0; j < rows; j++) {
-			Invader* inv = new Invader("assets/models/cube.FBX", "assets/textures/ainsley.png", startX, CALLBACK_MoveDown);
-			inv->Move(startX + i * diffX, startY + j * diffY, 0.0f);
-			inv->Rotate(0.0f);
-			inv->Scale(0.05f);
-			game.invaders.push_back(*inv);
-			delete inv;
+	game.invader = Invader("assets/models/cube.FBX", "assets/textures/ainsley.png");
+	game.invader.Scale(0.05f);
+
+	game.bullet = Bullet("assets/models/cube.FBX", "assets/textures/rick.png");
+	game.bullet.Scale(0.02f);
+
+	game.barricade = Barricade("assets/models/barricade.FBX", "assets/textures/rick.png");
+	game.barricade.Rotate(90.0f, 0.0f, 0.0f);
+	game.barricade.Scale(0.05f, 0.05f, 0.035f);
+
+	game.interface.scoreText = Plane("assets/models/plane.FBX", "assets/textures/rick.png");
+	game.interface.scoreText.Rotate(0.0f, 180.0f, 0.0f);
+	game.interface.scoreText.Scale(0.05f);
+
+	GenerateGame(false);
+}
+
+void GenerateGame(bool playerDied) {
+	int rows = 4, columns = 10;
+	float startX = -5.0f, startY = 3.5f, diffX = 0.6f, diffY = -0.6f;
+
+	float barricadeX = -4.5f, barricadeY = -2.0f, barricadeWidth = 0.55f, barricadeHeight = 0.4f;
+
+	game.invaders.clear();
+	game.bullets.clear();
+
+	if (playerDied) {
+		game.barricades.clear();
+		game.player.Reset();
+
+		for (int i = 0; i < columns; i++) {
+			for (int j = 0; j < rows; j++) {
+				Invader inv = game.invader;
+				inv.Move(startX + i * diffX, startY + j * diffY, 0.0f);
+				inv.SetEdge(startX);
+				game.invaders.push_back(inv);
+			}
+		}
+
+		for (int i = 0; i < 17; i++) {
+			for (int j = 0; j < 3; j++) {
+				if (i != 3 && i != 8 && i != 13) {
+					Barricade bar = game.barricade;
+					bar.Move(barricadeX + i * barricadeWidth, barricadeY + j * barricadeHeight, 0.0f);
+					game.barricades.push_back(bar);
+				}
+			}
+		}
+	} else {
+		for (int i = 0; i < columns; i++) {
+			for (int j = 0; j < rows; j++) {
+				Invader inv = game.invader;
+				inv.Move(startX + i * diffX, startY + j * diffY, 0.0f);
+				inv.SetEdge(startX);
+				game.invaders.push_back(inv);
+			}
 		}
 	}
 }
-
-void GenerateGame(bool firstGenerate) {}
