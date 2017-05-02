@@ -292,7 +292,9 @@ void LoadAssets() {
 	game.interface.score[8] = Plane("assets/models/plane.FBX", "assets/textures/numbers/8.png", 0.05f, 0.05f);
 	game.interface.score[9] = Plane("assets/models/plane.FBX", "assets/textures/numbers/9.png", 0.05f, 0.05f);
 
-	cout << game.interface.score.size() << endl;
+	game.interface.lives[0] = Plane("assets/models/plane.FBX", "assets/textures/test.png", 0.05f, 0.05f);
+	game.interface.lives[1] = Plane("assets/models/plane.FBX", "assets/textures/test.png", 0.05f, 0.05f);
+	game.interface.lives[2] = Plane("assets/models/plane.FBX", "assets/textures/test.png", 0.05f, 0.05f);
 
 	GenerateGame(false);
 }

@@ -8,7 +8,7 @@ struct Inputs {
 };
 
 struct Interface {
-    std::vector<Plane> lives;
+    std::array<Plane, 3> lives;
     std::array<Plane, 10> score;
     Plane scoreText;
 };
@@ -29,7 +29,7 @@ public:
     Inputs input;
     Interface interface;
 
-    float screenEdge;
+    float screenEdge, fireTimer = 0.45f;
 
     int playerScore = 0;
     float pitchAmount = 0.0f, maxP = 5.0f, minP = -5.0f;
@@ -39,6 +39,8 @@ public:
     }
 
     void Update(GLfloat &deltaTime) {
+        fireTimer += deltaTime;
+
         if (input.up && !input.down) pitchAmount -= deltaTime;
         if (input.down && !input.up) pitchAmount += deltaTime;
         if (input.left && !input.right) player.MoveLeft(deltaTime);
@@ -162,6 +164,11 @@ public:
 
         interface.scoreText.SetPosition(startX - ((i + 1) * width), posY, 0.0f);
         interface.scoreText.Render(hudShader, camera, projection);
+
+        for (int i = 0; i < player.lives; i++) {
+            interface.lives[i].SetPosition((0.05f - screenEdge) + (i * width), posY, 0.0f);
+            interface.lives[i].Render(hudShader, camera, projection);
+        }
     }
 
     bool CheckMoveDown() {
@@ -174,10 +181,14 @@ public:
     }
 
     void PlayerShoot() {
-        Bullet b = bullet;
-        b.SetBullet(player.getPosition(), true);
-        b.Move(0.0f, 0.25f, 0.0f);
-        bullets.push_back(b);
+        if (fireTimer > 0.25f) {
+            fireTimer = 0.0f;
+
+            Bullet b = bullet;
+            b.SetBullet(player.getPosition(), true);
+            b.Move(0.0f, 0.45f, 0.0f);
+            bullets.push_back(b);
+        }
     }
 
     void EnemyShoot(int i) {

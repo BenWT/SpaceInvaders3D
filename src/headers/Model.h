@@ -33,6 +33,9 @@ public:
     void Rotate(GLfloat x, GLfloat y, GLfloat z) {
         for(GLuint i = 0; i < this->meshes.size(); i++) this->meshes[i].rotation.Increment(x, y, z);
     }
+    void SetRotation(GLfloat x, GLfloat y, GLfloat z) {
+        for(GLuint i = 0; i < this->meshes.size(); i++) this->meshes[i].rotation.Set(x, y, z);
+    }
 
     void Scale(GLfloat v) {
         for(GLuint i = 0; i < this->meshes.size(); i++) this->meshes[i].scale.Set(v);
