@@ -47,7 +47,6 @@ SDL_GLContext context;
 bool running = false;
 glm::mat4 projectionMat, overlayMat, overlayView;
 GLfloat viewportHeight, viewportWidth;
-Shader mainShader, skyboxShader, hudShader;
 
 GameState game = GameState();
 
@@ -150,9 +149,9 @@ int main(int argc, char *argv[]) {
 	}
 
 	// Create shader program
-	mainShader = Shader("assets/shaders/vert.vs", "assets/shaders/frag.fs");
-	skyboxShader = Shader("assets/shaders/vert_cube.vs", "assets/shaders/frag_cube.fs");
-	hudShader = Shader("assets/shaders/vert_hud.vs", "assets/shaders/frag_cube.fs");
+	game.mainShader = Shader("assets/shaders/vert.vs", "assets/shaders/frag.fs");
+	game.skyboxShader = Shader("assets/shaders/vert_cube.vs", "assets/shaders/frag_cube.fs");
+	game.hudShader = Shader("assets/shaders/vert.vs", "assets/shaders/frag_hud.fs");
 
     // Preserve Aspect
     SizeWindow();
@@ -160,11 +159,14 @@ int main(int argc, char *argv[]) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
+
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);
@@ -245,8 +247,8 @@ void Render() {
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	game.Render(mainShader, skyboxShader, projectionMat);
-	game.RenderHUD(mainShader, overlayMat * overlayView);
+	game.Render(projectionMat);
+	game.RenderHUD(overlayMat * overlayView);
 
 	SDL_GL_SwapWindow(window);
 }
@@ -274,9 +276,7 @@ void LoadAssets() {
 	game.barricade.Rotate(90.0f, 0.0f, 0.0f);
 	game.barricade.Scale(0.05f, 0.05f, 0.035f);
 
-	game.interface.scoreText = Plane("assets/models/plane.FBX", "assets/textures/rick.png");
-	game.interface.scoreText.Rotate(0.0f, 180.0f, 0.0f);
-	game.interface.scoreText.Scale(0.05f);
+	game.interface.scoreText = Plane("assets/models/plane.FBX", "assets/textures/test.png", 1.5f, 1.0f);
 
 	GenerateGame(false);
 }

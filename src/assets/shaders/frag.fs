@@ -1,4 +1,5 @@
-#version 330 core
+#version 440 core
+
 struct DirLight {
     vec3 direction, ambient, diffuse, specular;
 };
