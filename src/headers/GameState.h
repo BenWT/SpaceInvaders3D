@@ -9,7 +9,7 @@ struct Inputs {
 
 struct Interface {
     std::vector<Plane> lives;
-    std::vector<Plane> score;
+    std::array<Plane, 10> score;
     Plane scoreText;
 };
 
@@ -29,6 +29,9 @@ public:
     Inputs input;
     Interface interface;
 
+    float screenEdge;
+
+    int playerScore = 0;
     float pitchAmount = 0.0f, maxP = 5.0f, minP = -5.0f;
 
     GameState() {
@@ -105,6 +108,7 @@ public:
                                 if (invaders[j].isAlive) {
                                     bullets[i].doDestroy = true;
                                     invaders[j].isAlive = false;
+                                    playerScore += 10;
                                 }
                             }
                         }
@@ -139,6 +143,24 @@ public:
     }
 
     void RenderHUD(glm::mat4 &projection) {
+        GLfloat startX = screenEdge - 0.05f, posY = -0.45f, width = 0.05f;
+        int n = playerScore, i = 0;
+        if (n == 0) {
+            interface.score[0].SetPosition(startX, posY, 0.0f);
+            interface.score[0].Render(hudShader, camera, projection);
+            i++;
+        } else {
+            while (n > 0) {
+                int digit = n % 10;
+                n /= 10;
+
+                interface.score[digit].SetPosition(startX - (i * width), posY, 0.0f);
+                interface.score[digit].Render(hudShader, camera, projection);
+                i++;
+            }
+        }
+
+        interface.scoreText.SetPosition(startX - ((i + 1) * width), posY, 0.0f);
         interface.scoreText.Render(hudShader, camera, projection);
     }
 

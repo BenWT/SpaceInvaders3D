@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <array>
 #include <vector>
 #include <iterator>
 #include <chrono>
@@ -64,7 +65,6 @@ void toggleFullScreen() {
 }
 void SizeWindow() {
 	int w, h;
-	float wNormal, hNormal;
 	w = SDL_GetWindowSurface(window)->w;
 	h = SDL_GetWindowSurface(window)->h;
 
@@ -73,6 +73,8 @@ void SizeWindow() {
 
 	overlayMat = glm::ortho(0.0f, float(w) / float(h), 0.0f, 1.0f, -1.0f, 100.0f);
 	overlayView = glm::translate(glm::mat4(), glm::vec3((float(w) / float(h)) / 2, 0.5f, 0.0f));
+
+	game.screenEdge = (float(w) / float(h)) / 2;
 }
 string basePath;
 string GetPathFromFullPath(const string& str) {
@@ -151,7 +153,7 @@ int main(int argc, char *argv[]) {
 	// Create shader program
 	game.mainShader = Shader("assets/shaders/vert.vs", "assets/shaders/frag.fs");
 	game.skyboxShader = Shader("assets/shaders/vert_cube.vs", "assets/shaders/frag_cube.fs");
-	game.hudShader = Shader("assets/shaders/vert.vs", "assets/shaders/frag_hud.fs");
+	game.hudShader = Shader("assets/shaders/vert_hud.vs", "assets/shaders/frag_hud.fs");
 
     // Preserve Aspect
     SizeWindow();
@@ -276,7 +278,21 @@ void LoadAssets() {
 	game.barricade.Rotate(90.0f, 0.0f, 0.0f);
 	game.barricade.Scale(0.05f, 0.05f, 0.035f);
 
-	game.interface.scoreText = Plane("assets/models/plane.FBX", "assets/textures/test.png", 1.5f, 1.0f);
+	game.interface.scoreText = Plane("assets/models/plane.FBX", "assets/textures/numbers/score.png", 0.2f, 0.05f);
+	game.interface.scoreText.Move(0.05f, 0.45f, 0.0f);
+
+	game.interface.score[0] = Plane("assets/models/plane.FBX", "assets/textures/numbers/0.png", 0.05f, 0.05f);
+	game.interface.score[1] = Plane("assets/models/plane.FBX", "assets/textures/numbers/1.png", 0.05f, 0.05f);
+	game.interface.score[2] = Plane("assets/models/plane.FBX", "assets/textures/numbers/2.png", 0.05f, 0.05f);
+	game.interface.score[3] = Plane("assets/models/plane.FBX", "assets/textures/numbers/3.png", 0.05f, 0.05f);
+	game.interface.score[4] = Plane("assets/models/plane.FBX", "assets/textures/numbers/4.png", 0.05f, 0.05f);
+	game.interface.score[5] = Plane("assets/models/plane.FBX", "assets/textures/numbers/5.png", 0.05f, 0.05f);
+	game.interface.score[6] = Plane("assets/models/plane.FBX", "assets/textures/numbers/6.png", 0.05f, 0.05f);
+	game.interface.score[7] = Plane("assets/models/plane.FBX", "assets/textures/numbers/7.png", 0.05f, 0.05f);
+	game.interface.score[8] = Plane("assets/models/plane.FBX", "assets/textures/numbers/8.png", 0.05f, 0.05f);
+	game.interface.score[9] = Plane("assets/models/plane.FBX", "assets/textures/numbers/9.png", 0.05f, 0.05f);
+
+	cout << game.interface.score.size() << endl;
 
 	GenerateGame(false);
 }
@@ -291,6 +307,7 @@ void GenerateGame(bool playerDied) {
 	game.bullets.clear();
 
 	if (playerDied) {
+		game.playerScore = 0;
 		game.barricades.clear();
 		game.player.Reset();
 

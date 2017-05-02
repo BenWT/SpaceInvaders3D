@@ -23,6 +23,9 @@ public:
     void Move(GLfloat x, GLfloat y, GLfloat z) {
         for(GLuint i = 0; i < this->meshes.size(); i++) this->meshes[i].position.Increment(x, y, z);
     }
+    void SetPosition(GLfloat x, GLfloat y, GLfloat z) {
+        for(GLuint i = 0; i < this->meshes.size(); i++) this->meshes[i].position.Set(x, y, z);
+    }
 
     void Rotate(GLfloat v) {
         for(GLuint i = 0; i < this->meshes.size(); i++) this->meshes[i].rotation.Increment(v);

@@ -7,7 +7,7 @@ public:
     Plane(GLchar* path, GLchar* texture, GLfloat w, GLfloat h) {
         this->loadModel(path, texture);
     	this->Rotate(0.0f, 180.0f, 0.0f);
-        this->Scale(0.05);
+        this->Scale(0.1f);
         this->Scale(w, h);
     }
 
