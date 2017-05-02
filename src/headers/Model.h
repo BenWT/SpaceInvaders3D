@@ -11,13 +11,13 @@ public:
         this->loadModel(path, texture);
     }
 
-    void Render(Shader &shader, Camera &camera, glm::mat4 &projectionMat) {
+    void Render(Shader &shader, Camera &camera, Vector3 &playerPos, glm::mat4 &projectionMat) {
         for(GLuint i = 0; i < this->meshes.size(); i++) {
-            this->meshes[i].Render(shader, camera, projectionMat);
+            this->meshes[i].Render(shader, camera, playerPos, projectionMat);
         }
     }
-    void Render(Shader &shader, Camera &camera, glm::mat4 &projectionMat, int i) {
-        this->meshes[i].Render(shader, camera, projectionMat);
+    void Render(Shader &shader, Camera &camera, Vector3 &playerPos, glm::mat4 &projectionMat, int i) {
+        this->meshes[i].Render(shader, camera, playerPos, projectionMat);
     }
 
     void Move(GLfloat x, GLfloat y, GLfloat z) {

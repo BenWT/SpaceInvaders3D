@@ -134,14 +134,14 @@ public:
 
     void Render(glm::mat4 &projection) {
     	skybox.Render(skyboxShader, projection, camera.GetViewMatrix());
-        lBarricade.Render(mainShader, camera, projection);
-        rBarricade.Render(mainShader, camera, projection);
+        lBarricade.Render(mainShader, camera, player.meshes[0].position, projection);
+        rBarricade.Render(mainShader, camera, player.meshes[0].position, projection);
 
-        for (int i = 0; i < bullets.size(); i++) bullets[i].Render(mainShader, camera, projection);
-        for (int i = 0; i < invaders.size(); i++) invaders[i].Render(mainShader, camera, projection);
-        for (int i = 0; i < barricades.size(); i++) barricades[i].Render(mainShader, camera, projection, barricades[i].hits);
+        for (int i = 0; i < bullets.size(); i++) bullets[i].Render(mainShader, camera, player.meshes[0].position, projection);
+        for (int i = 0; i < invaders.size(); i++) invaders[i].Render(mainShader, camera, player.meshes[0].position, projection);
+        for (int i = 0; i < barricades.size(); i++) barricades[i].Render(mainShader, camera, player.meshes[0].position, projection, barricades[i].hits);
 
-        player.Render(mainShader, camera, projection);
+        player.Render(mainShader, camera, player.meshes[0].position, projection);
     }
 
     void RenderHUD(glm::mat4 &projection) {
@@ -166,7 +166,7 @@ public:
         interface.scoreText.Render(hudShader, camera, projection);
 
         for (int i = 0; i < player.lives; i++) {
-            interface.lives[i].SetPosition((0.05f - screenEdge) + (i * width), posY, 0.0f);
+            interface.lives[i].SetPosition((0.05f - screenEdge) + (i * (width + 0.005f)), posY, 0.0f);
             interface.lives[i].Render(hudShader, camera, projection);
         }
     }

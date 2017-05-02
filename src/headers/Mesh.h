@@ -52,7 +52,7 @@ public:
 		shouldBuffer = false;
     }
 
-	void Render(Shader &shader, Camera &camera, glm::mat4 &projectionMat) {
+	void Render(Shader &shader, Camera &camera, Vector3 &playerPos, glm::mat4 &projectionMat) {
         if (shouldBuffer) BindBuffers();
 		shader.Use();
 
@@ -68,6 +68,14 @@ public:
 		glUniform3f(glGetUniformLocation(shader.program, "dirLight.ambient"), 0.2f, 0.2f, 0.2f);
 		glUniform3f(glGetUniformLocation(shader.program, "dirLight.diffuse"), 0.5f, 0.5f, 0.5f);
 		glUniform3f(glGetUniformLocation(shader.program, "dirLight.specular"), 1.0f, 1.0f, 1.0f);
+
+		glUniform3f(glGetUniformLocation(shader.program, "pointLight.position"), playerPos.x, playerPos.y + 0.5f, playerPos.z + 0.5f);
+        glUniform3f(glGetUniformLocation(shader.program, "pointLight.ambient"), 0.05f, 0.05f, 0.05f);
+        glUniform3f(glGetUniformLocation(shader.program, "pointLight.diffuse"), 0.8f, 0.8f, 0.8f);
+        glUniform3f(glGetUniformLocation(shader.program, "pointLight.specular"), 0.5f, 0.5f, 0.5f);
+        glUniform1f(glGetUniformLocation(shader.program, "pointLight.constant"), 1.0f);
+        glUniform1f(glGetUniformLocation(shader.program, "pointLight.linear"), 0.09);
+        glUniform1f(glGetUniformLocation(shader.program, "pointLight.quadratic"), 0.032);
 
 		glUniformMatrix4fv(glGetUniformLocation(shader.program, "projection"), 1, GL_FALSE, glm::value_ptr(projectionMat));
 		glUniformMatrix4fv(glGetUniformLocation(shader.program, "model"), 1, GL_FALSE, glm::value_ptr(model));
