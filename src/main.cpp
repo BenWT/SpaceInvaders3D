@@ -274,8 +274,9 @@ void LoadAssets() {
 	game.invader = Invader("assets/models/invader.FBX", "assets/textures/invader.png");
 	game.invader.Scale(0.0045f);
 
-	game.bullet = Bullet("assets/models/cube.FBX", "assets/textures/rick.png");
-	game.bullet.Scale(0.02f);
+	game.bullet = Bullet("assets/models/bullet.FBX", "assets/textures/rick.png");
+	game.bullet.Rotate(90.0f, 0.0f, 0.0f);
+	game.bullet.Scale(0.08f);
 
 	game.barricade = Barricade("assets/models/barricade.FBX", "assets/textures/barricade.png");
 	game.barricade.Rotate(0.0f, -90.0f, 0.0f);
