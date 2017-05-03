@@ -54,7 +54,7 @@ public:
         camera.pitch = pitchAmount * 5.0f;
         camera.updateCameraVectors();
 
-        EnemyShoot(rand() % 1200);
+        // EnemyShoot(rand() % 1200);
 
         if (CheckMoveDown()) {
             for (int i = 0; i < invaders.size(); i++) {
@@ -72,32 +72,21 @@ public:
         GLfloat invaderSize = 0.25f;
         GLfloat playerWidth = 0.35f, playerHeight = 0.25f;
         GLfloat bulletWidth = 0.05f, bulletHeight = 0.05f;
-        GLfloat barricadeWidth = 0.35f, barricadeHeight = 0.2f;
+        GLfloat barricadeWidth = 0.45f, barricadeHeight = 0.45f;
 
         for (int i = 0; i < bullets.size();) {
             bool hitBarricade = false;
 
             for (int j = 0; j < barricades.size(); j++) {
                 if (!hitBarricade) {
-                    if (barricades[j].hits == 0) {
-                        if (bullets[i].getX() + bulletWidth > barricades[j].getX() - barricadeWidth && bullets[i].getX() - bulletWidth < barricades[j].getX() + barricadeWidth) {
-                            if (bullets[i].getY() + bulletHeight > barricades[j].getY() - barricadeHeight && bullets[i].getY() + bulletHeight < barricades[j].getY() + barricadeHeight) {
-                                hitBarricade = true;
-                            }
+                    if (bullets[i].getX() + bulletWidth > barricades[j].getX() && bullets[i].getX() - bulletWidth < barricades[j].getX() + barricadeWidth) {
+                        if (bullets[i].getY() + bulletHeight > barricades[j].getY() - barricadeHeight && bullets[i].getY() - bulletHeight < barricades[j].getY() + barricadeHeight) {
+                            hitBarricade = true;
+                            bullets[i].doDestroy = true;
+                            barricades[j].hits++;
+                            barricades[j].Rotate(180.0f, 0.0f, 0.0f);
+                            if (barricades[j].hits > 1) barricades.erase(barricades.begin() + j);
                         }
-                    } else {
-                        if (bullets[i].getX() + bulletWidth > barricades[j].getX() - barricadeWidth && bullets[i].getX() - bulletWidth < barricades[j].getX() + barricadeWidth) {
-                            if (bullets[i].getY() + bulletHeight > barricades[j].getY() && bullets[i].getY() - bulletHeight < barricades[j].getY()) {
-                                hitBarricade = true;
-                            }
-                        }
-                    }
-
-                    if (hitBarricade) {
-                        bullets[i].doDestroy = true;
-                        barricades[j].hits++;
-                        if (barricades[j].hits > 1) barricades.erase(barricades.begin() + j);
-                        break;
                     }
                 }
             }
@@ -106,7 +95,7 @@ public:
                 if (bullets[i].isPlayer) {
                     for (int j = 0; j < invaders.size(); j++) {
                         if (bullets[i].getX() + bulletWidth > invaders[j].getX() - invaderSize && bullets[i].getX() - bulletWidth < invaders[j].getX() + invaderSize) {
-                            if (bullets[i].getY() + bulletHeight > invaders[j].getY() - invaderSize && bullets[i].getY() + bulletHeight < invaders[j].getY() + invaderSize) {
+                            if (bullets[i].getY() + bulletHeight > invaders[j].getY() - invaderSize && bullets[i].getY() - bulletHeight < invaders[j].getY() + invaderSize) {
                                 if (invaders[j].isAlive) {
                                     bullets[i].doDestroy = true;
                                     invaders[j].isAlive = false;
@@ -117,10 +106,9 @@ public:
                     }
                 } else {
                     if (bullets[i].getX() + bulletWidth > player.getX() - playerWidth && bullets[i].getX() - bulletWidth < player.getX() + playerWidth) {
-                        if (bullets[i].getY() + bulletHeight > player.getY() - playerHeight && bullets[i].getY() + bulletHeight < player.getY() + playerHeight) {
+                        if (bullets[i].getY() + bulletHeight > player.getY() - playerHeight && bullets[i].getY() - bulletHeight < player.getY() + playerHeight) {
                             bullets[i].doDestroy = true;
                             player.lives--;
-                            std::cout << "hit player" << std::endl;
                         }
                     }
                 }
@@ -139,7 +127,7 @@ public:
 
         for (int i = 0; i < bullets.size(); i++) bullets[i].Render(mainShader, camera, player.meshes[0].position, projection);
         for (int i = 0; i < invaders.size(); i++) invaders[i].Render(mainShader, camera, player.meshes[0].position, projection);
-        for (int i = 0; i < barricades.size(); i++) barricades[i].Render(mainShader, camera, player.meshes[0].position, projection, barricades[i].hits);
+        for (int i = 0; i < barricades.size(); i++) barricades[i].Render(mainShader, camera, player.meshes[0].position, projection);
 
         player.Render(mainShader, camera, player.meshes[0].position, projection);
     }
@@ -186,7 +174,7 @@ public:
 
             Bullet b = bullet;
             b.SetBullet(player.getPosition(), true);
-            b.Move(0.0f, 0.45f, 0.0f);
+            b.Move(0.0f, 0.15f, 0.0f);
             bullets.push_back(b);
         }
     }

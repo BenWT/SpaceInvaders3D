@@ -25,7 +25,7 @@ public:
     void Reset() {
         this->lives = 3;
         this->meshes[0].position.x = 0.0;
-        this->meshes[0].position.y = -3.0;
+        this->meshes[0].position.y = -3.0f;
         this->meshes[0].position.z = 0.0;
     }
 };

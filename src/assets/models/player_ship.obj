@@ -1,7 +1,7 @@
 # 3ds Max Wavefront OBJ Exporter v0.97b - (c)2007 guruware
-# File Created: 30.04.2017 13:50:28
+# File Created: 03.05.2017 17:47:59
 
-mtllib player.mtl
+mtllib player_ship.mtl
 
 #
 # object Box001

@@ -13,6 +13,7 @@ public:
 
         this->minX = minX;
         this->maxX = -minX;
+
     }
 
     bool DoMove(GLfloat &deltaTime) {
@@ -21,13 +22,15 @@ public:
         if (isAlive) {
             if (moveRight) Move(speed * deltaTime, 0.0f, 0.0f);
             else Move(-speed * deltaTime, 0.0f, 0.0f);
+
+            Rotate(25.0f * deltaTime, 25.0f * deltaTime, -25.0f * deltaTime);
         } else {
             deathTimer += deltaTime;
 
             if (moveRight) Move(speed * deltaTime, -speed * deltaTime, 0.0f);
             else Move(-speed * deltaTime, -speed * deltaTime, 0.0f);
             Rotate(0.0f, 0.0f, 35.0f * deltaTime);
-            Grow(-0.025f * deltaTime);
+            Grow(-0.00225f * deltaTime);
 
             if (deathTimer > 2.0f) return true;
         }

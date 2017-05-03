@@ -209,7 +209,6 @@ void ProcessInput() {
 			break;
 			case SDL_MOUSEBUTTONDOWN:
 				if (event.button.button == SDL_BUTTON_LEFT) game.PlayerShoot();
-				// if (event.button.button == SDL_BUTTON_RIGHT) gameState.EnemyFire(0);
 			break;
 			case SDL_KEYUP:
 				if (k == SDLK_w) game.input.up = false;
@@ -220,6 +219,7 @@ void ProcessInput() {
 			case SDL_KEYDOWN:
 				if (k == SDLK_ESCAPE) running = false;
 				if (k == SDLK_RETURN) toggleFullScreen();
+				if (k == SDLK_SPACE) game.PlayerShoot();
 				if (k == SDLK_w) game.input.up = true;
 				if (k == SDLK_s) game.input.down = true;
 				if (k == SDLK_a) game.input.left = true;
@@ -258,25 +258,28 @@ void Render() {
 void LoadAssets() {
 	game.skybox = Cubemap(true);
 
-	game.lBarricade = Model("assets/models/cube.FBX", "assets/textures/rick.png");
+	game.lBarricade = Model("assets/models/obstacle.FBX", "assets/textures/barricade.png");
 	game.lBarricade.Move(-5.5f, 0.0f, 0.0f);
-	game.lBarricade.Scale(0.05f, 0.8f, 0.05f);
-	game.rBarricade = Model("assets/models/cube.FBX", "assets/textures/rick.png");
+	game.lBarricade.Rotate(90.0f, 0.0f, 270.0f);
+	game.lBarricade.Scale(0.045f, 0.045f, 0.045f);
+	game.rBarricade = Model("assets/models/obstacle.FBX", "assets/textures/barricade.png");
 	game.rBarricade.Move(5.5f, 0.0f, 0.0f);
-	game.rBarricade.Scale(0.05f, 0.8f, 0.05f);
+	game.rBarricade.Rotate(90.0f, 0.0f, 270.0f);
+	game.rBarricade.Scale(0.045f, 0.045f, 0.045f);
 
-	game.player = Player("assets/models/player_ship.obj", "assets/textures/player_ship.png", -4.5f);
+	game.player = Player("assets/models/player.FBX", "assets/textures/player_ship.png", -4.5f);
+	game.player.Rotate(0.0f, 180.0f, 0.0f);
 	game.player.Scale(0.02f);
 
-	game.invader = Invader("assets/models/cube.FBX", "assets/textures/ainsley.png");
-	game.invader.Scale(0.05f);
+	game.invader = Invader("assets/models/invader.FBX", "assets/textures/invader.png");
+	game.invader.Scale(0.0045f);
 
 	game.bullet = Bullet("assets/models/cube.FBX", "assets/textures/rick.png");
 	game.bullet.Scale(0.02f);
 
-	game.barricade = Barricade("assets/models/barricade.FBX", "assets/textures/rick.png");
-	game.barricade.Rotate(90.0f, 0.0f, 0.0f);
-	game.barricade.Scale(0.05f, 0.05f, 0.035f);
+	game.barricade = Barricade("assets/models/barricade.FBX", "assets/textures/barricade.png");
+	game.barricade.Rotate(0.0f, -90.0f, 0.0f);
+	game.barricade.Scale(0.045f, 0.045f, 0.045f);
 
 	game.interface.scoreText = Plane("assets/models/plane.FBX", "assets/textures/numbers/score.png", 0.2f, 0.05f);
 	game.interface.scoreText.Move(0.05f, 0.45f, 0.0f);
@@ -303,7 +306,7 @@ void GenerateGame(bool playerDied) {
 	int rows = 4, columns = 10;
 	float startX = -5.0f, startY = 3.5f, diffX = 0.6f, diffY = -0.6f;
 
-	float barricadeX = -4.5f, barricadeY = -2.0f, barricadeWidth = 0.55f, barricadeHeight = 0.4f;
+	float barricadeX = -4.5f, barricadeY = -2.0f, barricadeWidth = 0.55f, barricadeHeight = 0.5f;
 
 	game.invaders.clear();
 	game.bullets.clear();
