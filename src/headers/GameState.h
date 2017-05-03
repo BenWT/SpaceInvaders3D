@@ -54,7 +54,7 @@ public:
         camera.pitch = pitchAmount * 5.0f;
         camera.updateCameraVectors();
 
-        // EnemyShoot(rand() % 1200);
+        EnemyShoot(rand() % 1200);
 
         if (CheckMoveDown()) {
             for (int i = 0; i < invaders.size(); i++) {
